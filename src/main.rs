@@ -2,45 +2,51 @@
 
 use std::future::Future;
 
+// #[tokio::main]
+// async fn main() {}
 fn main() {
-    println!("Hello, world!");
+    let runtime = tokio::runtime::Runtime::new();
+    runtime.block_on(async {
+        println!("Hello, world!");
 
-    let read_from_terminal = std::thread::spawn(move || {
-        let x = std::io::Stdin::lock(std::io::stdin());
-        for line in x.lines() {
-            // do something on user input
-        }
-    });
+        let read_from_terminal = std::thread::spawn(move || {
+            let x = std::io::Stdin::lock(std::io::stdin());
+            for line in x.lines() {
+                // do something on user input
+            }
+        });
 
-    let read_from_network = std::thread::spawn(move || {
-        let mut x = std::net::TcpListener::bind("0.0.0.0:8080").unwrap();
-        while let Ok(stream) = x.accept() {
-            // do something on stream
-            let handle = std::thread::spawn(move || {
-                handle_connection(stream);
-            });
-        }
-    });
-
-    let network = read_from_network();
-    let terminal = read_from_terminal();
-    let mut foo = foo2();
-
-    loop {
-        select! {
-            stream <- network.await => {
+        let read_from_network = std::thread::spawn(move || {
+            let mut x = std::net::TcpListener::bind("0.0.0.0:8080").unwrap();
+            while let Ok(stream) = x.accept() {
                 // do something on stream
+                let handle = std::thread::spawn(move || {
+                    handle_connection(stream);
+                });
             }
-            line <- terminal.await => {
-                // do something with line
-            }
-            foo <- foo.await => {
+        });
 
-            }
-        };
-    }
+        let network = read_from_network();
+        let terminal = read_from_terminal();
+        let mut foo = foo2();
 
-    // let x = foo2();
+        loop {
+            select! {
+                stream <- network.await => {
+                    // do something on stream
+                }
+                line <- terminal.await => {
+                    // do something with line
+                    break;
+                }
+                foo <- foo.await => {
+
+                }
+            };
+        }
+
+        // let x = foo2();
+    });
 }
 
 async fn read_to_string(s: &str) {}
