@@ -51,7 +51,7 @@ async fn foo1() -> usize {
     0
 }
 
-fn foo2() -> impl Future<Output = usize> {
+fn foo2(cancel: tokio::sync::mpsc::Receiver<()>) -> impl Future<Output = usize> {
     async {
 
         // let x = read_to_string("file").await;
@@ -77,6 +77,14 @@ fn foo2() -> impl Future<Output = usize> {
         // let result = fut.take_result();
         // Second time:
         println!("foo1");
+        race! {
+            done <- read_to_string("file2").await => {
+                // continue; fall-through to println below
+            }
+            cancel <- cancel.await => {
+                return 0;
+            }
+        }
         read_to_string("file2").await; // Wait here
         println!("foo1");
         let x = /* waiting on */ read_to_string("file3").await;
