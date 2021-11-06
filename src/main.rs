@@ -1,10 +1,11 @@
 #![allow(dead_code, unused_variables)]
 
-use std::future::Future;
+use std::{future::Future, net::TcpStream};
 
 // #[tokio::main]
 // async fn main() {}
 fn main() {
+    // let runtime = tokio::runtime::Runtime::worker_threads(1);
     let runtime = tokio::runtime::Runtime::new();
     runtime.block_on(async {
         println!("Hello, world!");
@@ -69,7 +70,30 @@ fn main() {
         // let file_bytes = try_join_all(files);
         let file_bytes = join_all(files);
         // file_bytes[0] == files[0]
+
+        let mut accept = tokio::net::TcpListener::bind("0.0.0.0:8080");
+        while let Ok(stream) = accept.await {
+            tokio::spawn(handle_connection(stream));
+        }
+        // let mut connections = futures::future::FuturesUnordered::new();
+        // loop {
+        //     select! {
+        //         stream <- (&mut accept).await => {
+        //             connections.push(handle_connection(stream));
+        //         }
+        //         _ <- (&mut connections).await => {}
+        //     }
+        // }
     });
+}
+
+async fn handle_connection(_: TcpStream) { 
+    let x = vec![];
+    // todo!()
+    tokio::spawn(async {
+        &x;
+        // 
+    })
 }
 
 async fn matrix_multiply() {}
