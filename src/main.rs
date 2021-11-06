@@ -1,6 +1,6 @@
 #![allow(dead_code, unused_variables)]
 
-use std::{future::Future, net::TcpStream};
+use std::{future::Future, net::TcpStream, sync::Arc};
 
 // #[tokio::main]
 // async fn main() {}
@@ -88,10 +88,21 @@ fn main() {
 }
 
 async fn handle_connection(_: TcpStream) { 
-    let x = vec![];
     // todo!()
-    tokio::spawn(async {
-        &x;
+    let x = Arc::new(Mutex::new(vec![]));
+    let x1 = Arc::clone(&x);
+    let join_handle = tokio::spawn(async move {
+        deserialize();
+        x1.lock();
+        let x: Result<_, _> = definitely_errors();
+        // 
+        0
+    });
+    join_handle.await;
+    assert_eq!(join_handle.await, 0);
+    let x2 = Arc::clone(&x);
+    tokio::spawn(async move {
+        x2.lock();
         // 
     })
 }
