@@ -94,6 +94,58 @@ fn main() {
     });
 }
 
+struct Request;
+struct Response;
+
+#[async_trait]
+trait Service<Request> {
+    // async fn call(&mut self, _: Request) -> Response;
+    fn call(&mut self, _: Request) -> impl Future<Output = Response>;
+}
+
+trait Service {
+    fn call(&mut self, _: Request) -> Pin<Box<dyn Future<Output = Response>>>;
+}
+
+trait Service {
+    type CallFuture: Future<Output = Response>;
+    fn call(&mut self, _: Request) -> Self::CallFuture;
+}
+
+struct X;
+
+#[async_trait]
+impl Service for X {
+    async fn call(&mut self, _: Request) -> Response {
+        let z = [0; 1024];
+        tokio::time::sleep(100).await;
+        drop(z);
+        Response
+    }
+}
+
+impl Service for X {
+    fn call(&mut self, _: Request) -> Pin<Box<dyn Future<Output = Response>>> {
+        Box::pin(async move {
+            Response
+        })
+    }
+}
+
+impl Service for X {
+    type CallFuture = Pin<Box<dyn Future<Output = Response>>>;
+    fn call(&mut self, _: Request) -> Self::CallFuture {
+        async { Response }
+    }
+}
+
+struct FooCall<F>(F);
+
+fn foo<S: Service>(x: S) -> FooCall<typeof S::call> {
+    let fut = x.call(Request);
+    FooCall(fut)
+}
+
 fn bar(_: impl Future) {}
 
 enum StateMachine {
