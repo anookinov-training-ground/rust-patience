@@ -56,8 +56,19 @@ fn main() {
         // copy.await;
 
         // let x = foo2();
+
+        let files: Vec<_> = (0..3).map(|i| tokio::fs::read_to_string(format!("file{}", i))).collect();
+
+        // compare
+        let file1 = files[0].await;
+        let file2 = files[1].await;
+        let file3 = files[2].await;
+        // to this
+        let (file1, file2, file3) = join!(files[0], files[1], files[2]);
     });
 }
+
+async fn matrix_multiply() {}
 
 async fn read_to_string(s: &str) {}
 fn expensive_function(_: ()) {}
