@@ -30,20 +30,30 @@ fn main() {
         let terminal = read_from_terminal();
         let mut foo = foo2();
 
+        let mut f1 = tokio::fs::File::open("foo");
+        let mut f2 = tokio::fs::File::create("bar");
+        let copy = tokio::io::copy(&mut f1, &mut f2);
+
         loop {
             select! {
-                stream <- network.await => {
+                stream <- (&mut network).await => {
                     // do something on stream
                 }
-                line <- terminal.await => {
+                line <- (&mut terminal).await => {
                     // do something with line
                     break;
                 }
-                foo <- foo.await => {
+                foo <- (&mut foo).await => {
+
+                }
+                _ <- copy.await => {
 
                 }
             };
         }
+
+        // _some_ bytes have been copied from foo to bar, but not all
+        // copy.await;
 
         // let x = foo2();
     });
