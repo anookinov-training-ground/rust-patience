@@ -1,9 +1,10 @@
 #![allow(dead_code, unused_variables)]
 
-use std::{future::Future, net::TcpStream, sync::Arc};
+use std::{future::Future, net::TcpStream, process::Output, sync::Arc};
 
 // #[tokio::main]
 // async fn main() {}
+
 fn main() {
     // let runtime = tokio::runtime::Runtime::worker_threads(1);
     let runtime = tokio::runtime::Runtime::new();
@@ -84,7 +85,45 @@ fn main() {
         //         _ <- (&mut connections).await => {}
         //     }
         // }
+
+        // let mut x: StateMachine = foo();
+        let mut x = Box::pin(foo());
+        StateMachine::await(&mut x);
+
+        bar(x);
     });
+}
+
+fn bar(_: impl Future) {}
+
+enum StateMachine {
+    Chunk1 { x: [u8; 1024], fut: tokio::fs::ReadIntoFuture<'x> },
+    Chunk2 {},
+}
+
+// async fn foo() {
+fn foo() -> impl Future<Output = ()> /* StateMachine */ {
+    // chunk 1
+    {
+        let mut x = [0; 1024];
+        let fut = tokio::fs::read_into("file.dat", &mut x[..]);
+    }
+
+    // fut.await;
+    yield; // really: return
+
+    // chunk 2
+    {
+        let n = self.fut.output();
+        let z = vec![];
+        println!("{:?}", self.x[..n]);
+        // some_library::execute().await;
+        tokio::spawn(some_library::execute()).await;
+
+    }
+
+    let n: usize = tokio::fs::read_into("file.dat", &mut x[..]).await;
+    println!("{:?}", x[..n]);
 }
 
 async fn handle_connection(_: TcpStream) { 
