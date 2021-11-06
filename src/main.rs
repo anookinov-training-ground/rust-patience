@@ -1,6 +1,16 @@
 #![allow(dead_code, unused_variables)]
 
-use std::{future::Future, net::TcpStream, process::Output, sync::Arc};
+use std::{future::Future, net::TcpStream, process::Output, sync::{Arc, Mutex}};
+
+pub mod tokio {
+    pub async fn spawn(_: impl Future) {}
+    pub mod sync {
+        pub struct Mutex;
+    }
+
+}
+
+use tokio::sync::Mutex as TMutex;
 
 // #[tokio::main]
 // async fn main() {}
@@ -91,6 +101,25 @@ fn main() {
         StateMachine::await(&mut x);
 
         bar(x);
+
+        // let x = Arc::new(TMutex::new(0));
+        let x = Arc::new(Mutex::new(0));
+        let x1 = Arc::clone(&x);
+        tokio::spawn(async move {
+            loop {
+                // let x = x1.lock();
+                // tokio::fs::read_to_string("file").await;
+                // *x += 1;
+                // *x1.lock() -= matrix_multiply();
+                *x1.lock() -= 1;
+            }
+        });
+        let x2 = Arc::clone(&x);
+        tokio::spawn(async move {
+            loop {
+                *x2.lock() -= 1;
+            }
+        });
     });
 }
 
