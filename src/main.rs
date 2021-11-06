@@ -130,6 +130,13 @@ fn main() {
     });
 }
 
+async fn foo() {
+    tokio::spawn(async {
+        tracing::error!("oops");
+        panic!();
+    }.instrument("in foo"));
+}
+
 struct Request;
 struct Response;
 
