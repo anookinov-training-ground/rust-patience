@@ -63,8 +63,12 @@ fn main() {
         let file1 = files[0].await;
         let file2 = files[1].await;
         let file3 = files[2].await;
+        // files[0].then(files[1]).then(files[2])
         // to this
         let (file1, file2, file3) = join!(files[0], files[1], files[2]);
+        // let file_bytes = try_join_all(files);
+        let file_bytes = join_all(files);
+        // file_bytes[0] == files[0]
     });
 }
 
