@@ -10,6 +10,13 @@ pub mod tokio {
 
 }
 
+async fn b(mut f: impl Future) {
+    // loop {
+    //     f.poll(); // always continue in the same thread as it is in the loop after yield (no way back to the executor e.g. tokio)
+    // }
+    f.await; // might yield back to the executor e.g. tokio and might continue in a different thread
+}
+
 use tokio::sync::Mutex as TMutex;
 
 // #[tokio::main]
